@@ -6,6 +6,8 @@ import java.io.Serializable;
 
 @Data
 public class RpcResponse<T> implements Serializable {
+    public RpcResponse() {}
+
     //响应状态码
     private Integer statusCode;
     //响应状态补充信息

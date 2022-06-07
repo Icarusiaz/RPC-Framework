@@ -9,11 +9,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+//注册表
+
 public class DefaultServiceRegistry implements ServiceRegistry{
     private static final Logger logger = LoggerFactory.getLogger(DefaultServiceRegistry.class);
 
-    private final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
-    private final Set<String> registeredService = ConcurrentHashMap.newKeySet();
+    //static保证全局唯一的注册信息
+    private static final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
+    private static final Set<String> registeredService = ConcurrentHashMap.newKeySet();
 
     @Override
     public synchronized <T> void register(T service) {

@@ -1,4 +1,4 @@
-package com.zkl.rpc.transport;
+package com.zkl.rpc.transport.socket.server;
 
 import com.zkl.rpc.entity.RpcRequest;
 import com.zkl.rpc.entity.RpcResponse;
@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.Socket;
 
 public class RequestHandlerThread implements Runnable {
@@ -35,7 +33,10 @@ public class RequestHandlerThread implements Runnable {
 
             String interfaceName = rpcRequest.getInterfaceName();
             Object service = serviceRegistry.getService(interfaceName);
+            //String类型
             Object result = requestHandler.handle(rpcRequest, service);
+
+            //返回 RpcResponse<String>; (statusCode,message,data);
             objectOutputStream.writeObject(RpcResponse.success(result));
             objectOutputStream.flush();
         } catch (IOException | ClassNotFoundException e) {
