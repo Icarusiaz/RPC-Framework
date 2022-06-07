@@ -2,6 +2,9 @@ package com.zkl.rpc.transport.netty.server;
 
 import com.zkl.rpc.codec.CommonDecoder;
 import com.zkl.rpc.codec.CommonEncoder;
+import com.zkl.rpc.enumeration.RpcError;
+import com.zkl.rpc.exception.RpcException;
+import com.zkl.rpc.serializer.CommonSerializer;
 import com.zkl.rpc.serializer.HessianSerializer;
 import com.zkl.rpc.serializer.JsonSerializer;
 import com.zkl.rpc.serializer.KryoSerializer;
@@ -24,8 +27,15 @@ import org.slf4j.LoggerFactory;
 public class NettyServer implements RpcServer {
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
+    private CommonSerializer serializer;
+
     @Override
     public void start(int port) {
+        if(serializer == null) {
+            logger.error("未设置序列化器");
+            throw new RpcException(RpcError.SERIALIZER_NOT_FOUND);
+        }
+
         //bossGroup线程组：处理连接
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         //workerGroup：处理读写
@@ -49,8 +59,7 @@ public class NettyServer implements RpcServer {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline=ch.pipeline();
-//                            pipeline.addLast(new CommonEncoder(new JsonSerializer()))
-                            pipeline.addLast(new CommonEncoder(new HessianSerializer()))
+                            pipeline.addLast(new CommonEncoder(serializer))
                                     .addLast(new CommonDecoder())
                                     .addLast(new NettyServerHandler());
                             //向pipeline中添加自定义处理handler
@@ -66,5 +75,10 @@ public class NettyServer implements RpcServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    public void setSerializer(CommonSerializer serializer) {
+        this.serializer=serializer;
     }
 }

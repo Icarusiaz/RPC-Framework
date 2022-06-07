@@ -4,12 +4,13 @@ import com.zkl.rpc.entity.RpcRequest;
 import com.zkl.rpc.entity.RpcResponse;
 import com.zkl.rpc.handler.RequestHandler;
 import com.zkl.rpc.registry.ServiceRegistry;
+import com.zkl.rpc.serializer.CommonSerializer;
+import com.zkl.rpc.transport.socket.util.ObjectReader;
+import com.zkl.rpc.transport.socket.util.ObjectWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 
 public class RequestHandlerThread implements Runnable {
@@ -18,28 +19,31 @@ public class RequestHandlerThread implements Runnable {
     private Socket socket;
     private RequestHandler requestHandler;
     private ServiceRegistry serviceRegistry;
+    private CommonSerializer serializer;
 
-    public RequestHandlerThread(Socket socket, RequestHandler requestHandler, ServiceRegistry serviceRegistry) {
+    public RequestHandlerThread(Socket socket, RequestHandler requestHandler,
+                                ServiceRegistry serviceRegistry,CommonSerializer serializer) {
         this.socket = socket;
         this.requestHandler = requestHandler;
         this.serviceRegistry = serviceRegistry;
+        this.serializer=serializer;
     }
 
     @Override
     public void run() {
-        try (ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
-            RpcRequest rpcRequest = (RpcRequest) objectInputStream.readObject();
+        try (InputStream inputStream = socket.getInputStream();
+             OutputStream outputStream=socket.getOutputStream();) {
+            RpcRequest rpcRequest = (RpcRequest) ObjectReader.readObject(inputStream);
 
             String interfaceName = rpcRequest.getInterfaceName();
             Object service = serviceRegistry.getService(interfaceName);
-            //String类型
+            //返回String类型
             Object result = requestHandler.handle(rpcRequest, service);
 
             //返回 RpcResponse<String>; (statusCode,message,data);
-            objectOutputStream.writeObject(RpcResponse.success(result));
-            objectOutputStream.flush();
-        } catch (IOException | ClassNotFoundException e) {
+            RpcResponse<Object> response=RpcResponse.success(result,rpcRequest.getRequestId());
+            ObjectWriter.writeObject(outputStream,response,serializer);
+        } catch (IOException e) {
             logger.error("调用或发送时有错误发生：", e);
         }
     }

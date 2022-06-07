@@ -3,6 +3,7 @@ package com.zkl.test;
 import com.zkl.rpc.api.HelloService;
 import com.zkl.rpc.registry.DefaultServiceRegistry;
 import com.zkl.rpc.registry.ServiceRegistry;
+import com.zkl.rpc.serializer.HessianSerializer;
 import com.zkl.rpc.transport.socket.server.SocketServer;
 
 public class SocketTestServer {
@@ -14,6 +15,7 @@ public class SocketTestServer {
         serviceRegistry.register(helloService);
 
         SocketServer rpcServer = new SocketServer(serviceRegistry);
+        rpcServer.setSerializer(new HessianSerializer());
         rpcServer.start(9000);
     }
 }
