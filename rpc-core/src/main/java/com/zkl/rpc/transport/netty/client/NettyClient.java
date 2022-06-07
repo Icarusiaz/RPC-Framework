@@ -4,6 +4,7 @@ import com.zkl.rpc.codec.CommonDecoder;
 import com.zkl.rpc.codec.CommonEncoder;
 import com.zkl.rpc.entity.RpcRequest;
 import com.zkl.rpc.entity.RpcResponse;
+import com.zkl.rpc.serializer.HessianSerializer;
 import com.zkl.rpc.serializer.JsonSerializer;
 import com.zkl.rpc.serializer.KryoSerializer;
 import com.zkl.rpc.transport.RpcClient;
@@ -41,7 +42,8 @@ public class NettyClient implements RpcClient {
                         ChannelPipeline pipeline=ch.pipeline();
                         pipeline.addLast(new CommonDecoder())
 //                                .addLast(new CommonEncoder(new JsonSerializer()))
-                                .addLast(new CommonEncoder(new KryoSerializer()))
+//                                .addLast(new CommonEncoder(new KryoSerializer()))
+                                .addLast(new CommonEncoder(new HessianSerializer()))
                                 .addLast(new NettyClientHandler());
                     }
                 });
