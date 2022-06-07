@@ -5,6 +5,7 @@ import com.zkl.rpc.codec.CommonEncoder;
 import com.zkl.rpc.entity.RpcRequest;
 import com.zkl.rpc.entity.RpcResponse;
 import com.zkl.rpc.serializer.JsonSerializer;
+import com.zkl.rpc.serializer.KryoSerializer;
 import com.zkl.rpc.transport.RpcClient;
 import com.zkl.rpc.transport.netty.server.NettyServerHandler;
 import io.netty.bootstrap.Bootstrap;
@@ -39,7 +40,8 @@ public class NettyClient implements RpcClient {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline=ch.pipeline();
                         pipeline.addLast(new CommonDecoder())
-                                .addLast(new CommonEncoder(new JsonSerializer()))
+//                                .addLast(new CommonEncoder(new JsonSerializer()))
+                                .addLast(new CommonEncoder(new KryoSerializer()))
                                 .addLast(new NettyClientHandler());
                     }
                 });
